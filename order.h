@@ -7,7 +7,7 @@
 
 #include <stdbool.h>
 typedef struct Order_t *Order;
-
+typedef struct ProductToOrder_t *ProductToOrder;
 typedef enum OrderResult_t {
     ORDER_SUCCESS,
     ORDER_NULL_ARGUMENT,
@@ -101,6 +101,6 @@ bool ProductExsistInOrder(Order order, unsigned int productId);
  *      ORDER_PRODUCT_NOT_FOUND - if the product not found.
  *      ORDER_SUCCESS - in case of success.
  */
-OrderResult OrderGetProductAmount(Order order, unsigned int productId, double* amount);
+double GetProductAmount(Order order, unsigned int productId);
 
 #endif //HW1_ORDER_H

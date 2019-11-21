@@ -2,19 +2,20 @@
 // Created by kremisi on 16/11/2019.
 //
 #include "set.h"
+#include "list.h"
 #include <stdio.h>
 #include "order.h"
 #include <stdlib.h>
-//HELLO MAN!!!!?????????????
+
 struct Order_t{
     unsigned int orderId;
-    Set proudctToOrder;
+    Set productToOrder;
 };
 
-typedef struct ProudctToOrder_t{
+ struct ProductToOrder_t{
     unsigned int productId;
-    double amountForOrder;
-}*ProudctToOrder;
+    double amount;
+};
 
 
 static SetElement CopyProudctToOrder(SetElement proudctToOrder)
@@ -22,27 +23,28 @@ static SetElement CopyProudctToOrder(SetElement proudctToOrder)
     if(proudctToOrder == NULL){
         return NULL;
     }
-    ProudctToOrder newProudctToOrder = malloc(sizeof(ProudctToOrder));
+    ProductToOrder newProudctToOrder = malloc(sizeof(ProductToOrder));
     if(newProudctToOrder == NULL){
         return NULL;
     }
-    newProudctToOrder->productId = ((ProudctToOrder)proudctToOrder)->productId;
-    newProudctToOrder->amountForOrder = ((ProudctToOrder)proudctToOrder)->amountForOrder;
+    newProudctToOrder->productId = ((ProductToOrder)proudctToOrder)->productId;
+    newProudctToOrder->amount = ((ProductToOrder)proudctToOrder)->amount;
     return newProudctToOrder;
 }
-static void FreeProudctToOrder(SetElement proudctToOrder)
+
+static void FreeProudctToOrder(SetElement productToOrder)
 {
-    if(proudctToOrder==NULL)
+    if(productToOrder == NULL)
     {
         return;
     }
-    free(proudctToOrder);
+    free(productToOrder);
 }
 
-static int CompareElements(SetElement proudctToOrder1, SetElement proudctToOrder2)
+static int CompareElements(SetElement productToOrder1, SetElement productToOrder2)
 {
-    int id1 = ((ProudctToOrder)proudctToOrder1)->productId;
-    int id2 = ((ProudctToOrder)proudctToOrder2)->productId;
+    int id1 = ((ProductToOrder)productToOrder1)->productId;
+    int id2 = ((ProductToOrder)productToOrder2)->productId;
     if(id1 > id2)
     {
         return 1;
@@ -56,14 +58,15 @@ static int CompareElements(SetElement proudctToOrder1, SetElement proudctToOrder
         return 0;
     }
 }
-static ProudctToOrder  FindMyProduct(Order order,int productId)
+static ProductToOrder  FindMyProduct(Order order, unsigned int productId)
 {
+
     if(order == NULL) {
         return NULL;
     }
-    SET_FOREACH(SetElement,iterator,order ->proudctToOrder) {
-        if (((ProudctToOrder) iterator) -> productId == productId) {
-            return ((ProudctToOrder) iterator);
+    SET_FOREACH(SetElement,iterator,order ->productToOrder) {
+        if (((ProductToOrder) iterator) -> productId == productId) {
+            return ((ProductToOrder) iterator);
         }
     }
     return NULL;
@@ -76,9 +79,9 @@ Order CreateOrder(unsigned int orderId)
      {
          return NULL;
      }
-     newOrder->orderId = orderId;
-     newOrder->proudctToOrder = setCreate(CopyProudctToOrder, FreeProudctToOrder, CompareElements);
-     if(newOrder->proudctToOrder == NULL){
+     newOrder -> orderId = orderId;
+     newOrder -> productToOrder = setCreate(CopyProudctToOrder, FreeProudctToOrder, CompareElements);
+     if(newOrder -> productToOrder == NULL){
          free(newOrder);
          return NULL;
      }
@@ -91,7 +94,7 @@ void FreeOrder(Order order)
     {
         return;
     }
-    setDestroy(order -> proudctToOrder); // always succses
+    setDestroy(order -> productToOrder); // always succses
     free(order);
 }
 
@@ -107,8 +110,8 @@ Order OrderCopy(Order order)
           return NULL;
       }
       copyOrd->orderId = order -> orderId;
-      copyOrd->proudctToOrder = setCopy(order -> proudctToOrder);
-      if(copyOrd->proudctToOrder == NULL){
+      copyOrd->productToOrder = setCopy(order -> productToOrder);
+      if(copyOrd->productToOrder == NULL){
           free(copyOrd);
           return NULL;
       }
@@ -125,7 +128,7 @@ int GetOrderId(Order order)
     return orderId;
 }
 
-/*int GetProductToOrderId(ProudctToOrder productToOrder)
+/*int GetProductToOrderId(ProductToOrder productToOrder)
 {
     if(productToOrder==NULL)
     {
@@ -141,7 +144,7 @@ int OrderGetNumberOfProductSize(Order order)
     {
         return -1;
     }
-    int productsSize = setGetSize(order -> proudctToOrder);
+    int productsSize = setGetSize(order -> productToOrder);
     if(productsSize == -1)
     {
         return -1;
@@ -153,19 +156,22 @@ int OrderGetNumberOfProductSize(Order order)
 OrderResult DecreaseAndIncreaseProduct(unsigned int productId, Order order, double amount)
 {
     if(order == NULL){
+
         return ORDER_NULL_ARGUMENT;
     }
-    ProudctToOrder product = FindMyProduct(order, productId);
 
-    if(product == NULL && amount < 0){
-        //TODO : what should i do in case Amount is neg and also the product there is not found ???
+    ProductToOrder product = FindMyProduct(order, productId);
+
+    if(product == NULL && (amount < 0)){
+        //TODO : what should i do in case Amount is neg and also the product  is not found ???
     }
-    else if(product == NULL && amount > 0)
+
+    else if(product == NULL && (amount > 0))
     {
-        struct  ProudctToOrder_t productToAdd;
-        productToAdd.productId=productId;
-        productToAdd.amountForOrder = amount;
-        SetResult res = setAdd(order->proudctToOrder,&productToAdd);
+        struct  ProductToOrder_t productToAdd;
+        productToAdd.productId = productId;
+        productToAdd.amount = amount;
+        SetResult res = setAdd(order->productToOrder, &productToAdd);
         if(res == SET_NULL_ARGUMENT )
         {
             return  ORDER_NULL_ARGUMENT;
@@ -179,18 +185,17 @@ OrderResult DecreaseAndIncreaseProduct(unsigned int productId, Order order, doub
     }
     else
     {
-        if(product -> amountForOrder + amount > 0)
+        if((product -> amount )+ amount > 0)
         {
-            product->amountForOrder = product->amountForOrder + amount;
+            product -> amount = (product -> amount) + amount;
         }
         else
         {
-            setRemove(order->proudctToOrder,product);
-            // allways succses , productToOrder created and free at createorder function so order->proudctToOrder isnt null.
+            setRemove(order->productToOrder, product);
+            // allways succses , productToOrder created and free at createorder function so order->productToOrder isnt null.
             // in addition, in this case block product isnt null.
         }
     }
-
     return ORDER_SUCCESS; //should not get here!
 }
 
@@ -199,23 +204,26 @@ bool ProductExsistInOrder(Order order, unsigned int productId)
     if(order == NULL){
         return false;
     }
-    ProudctToOrder product = FindMyProduct(order, productId);
+    ProductToOrder product = FindMyProduct(order, productId);
     if(product == NULL){
         return false;
     }
     return true;
 }
 
-OrderResult OrderGetProductAmount(Order order, unsigned int productId, double* amount)
+double GetProductAmount(Order order, unsigned int productId)
 {
-    printf("jhdsjs");
-    if (order == NULL || amount == NULL) {
-        return ORDER_NULL_ARGUMENT;
+
+    if (order == NULL)
+    {
+        return -1.0;
     }
-    ProudctToOrder product = FindMyProduct(order, productId);
-    if (product == NULL) {
-        return ORDER_PRODUCT_NOT_FOUND;
+    ProductToOrder product = FindMyProduct(order, productId);
+    if (product == NULL)
+    {
+       return -1.0;
     }
-    (*amount) = (product -> amountForOrder);
-    return ORDER_SUCCESS;
+    double amount = product -> amount;
+    return amount;
 }
+

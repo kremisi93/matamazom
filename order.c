@@ -16,6 +16,22 @@ struct Order_t{
     unsigned int productId;
     double amount;
 };
+//TODO add to order.h
+static int Compare(unsigned int num1, unsigned int num2)
+{
+    if(num1 > num2)
+    {
+        return 1;
+    }
+    else if(num1 > num2)
+    {
+        return -1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 
 static SetElement CopyProudctToOrder(SetElement proudctToOrder)
@@ -23,7 +39,7 @@ static SetElement CopyProudctToOrder(SetElement proudctToOrder)
     if(proudctToOrder == NULL){
         return NULL;
     }
-    ProductToOrder newProudctToOrder = malloc(sizeof(ProductToOrder));
+    ProductToOrder newProudctToOrder = malloc(sizeof(struct ProductToOrder_t));
     if(newProudctToOrder == NULL){
         return NULL;
     }
@@ -45,18 +61,7 @@ static int CompareElements(SetElement productToOrder1, SetElement productToOrder
 {
     int id1 = ((ProductToOrder)productToOrder1)->productId;
     int id2 = ((ProductToOrder)productToOrder2)->productId;
-    if(id1 > id2)
-    {
-        return 1;
-    }
-    else if(id2 > id1)
-    {
-        return -1;
-    }
-    else
-    {
-        return 0;
-    }
+    return Compare(id1,id2);
 }
 static ProductToOrder  FindMyProduct(Order order, unsigned int productId)
 {
@@ -74,7 +79,7 @@ static ProductToOrder  FindMyProduct(Order order, unsigned int productId)
 
 Order CreateOrder(unsigned int orderId)
 {
-    Order newOrder = malloc(sizeof(Order));
+    Order newOrder = malloc(sizeof(struct Order_t));
      if(newOrder == NULL)
      {
          return NULL;
@@ -98,24 +103,28 @@ void FreeOrder(Order order)
     free(order);
 }
 
-Order OrderCopy(Order order)
-{
-      if(order==NULL)
-      {
+Order OrderCopy(Order order) {
+    if (order == NULL) {
         return NULL;
-      }
-      Order copyOrd = malloc(sizeof(Order));
-      if(copyOrd==NULL)
-      {
-          return NULL;
-      }
-      copyOrd->orderId = order -> orderId;
-      copyOrd->productToOrder = setCopy(order -> productToOrder);
-      if(copyOrd->productToOrder == NULL){
-          free(copyOrd);
-          return NULL;
-      }
-      return copyOrd;
+    }
+    Order copyOrd = malloc(sizeof(struct Order_t));
+    if (copyOrd == NULL) {
+        return NULL;
+    }
+    copyOrd->orderId = order->orderId;
+    copyOrd->productToOrder = setCopy(order->productToOrder);
+    if (copyOrd->productToOrder == NULL) {
+        free(copyOrd);
+        return NULL;
+    }
+    return copyOrd;
+}
+
+int CompareOrders(Order order1,Order order2)
+{
+    int id1 = order1 -> orderId;
+    int id2= order2 -> orderId;
+    return Compare(id1,id2);
 }
 
 int GetOrderId(Order order)
@@ -127,16 +136,6 @@ int GetOrderId(Order order)
     int orderId = order -> orderId;
     return orderId;
 }
-
-/*int GetProductToOrderId(ProductToOrder productToOrder)
-{
-    if(productToOrder==NULL)
-    {
-        return -1;
-    }
-    int producToOrderId=productToOrder->productId;
-    return producToOrderId;
-}*/
 
 int OrderGetNumberOfProductSize(Order order)
 {
@@ -185,7 +184,7 @@ OrderResult DecreaseAndIncreaseProduct(unsigned int productId, Order order, doub
     }
     else
     {
-        if((product -> amount )+ amount > 0)
+        if(((product -> amount )+ amount) > 0)
         {
             product -> amount = (product -> amount) + amount;
         }
@@ -196,7 +195,7 @@ OrderResult DecreaseAndIncreaseProduct(unsigned int productId, Order order, doub
             // in addition, in this case block product isnt null.
         }
     }
-    return ORDER_SUCCESS; //should not get here!
+    return ORDER_SUCCESS;
 }
 
 bool ProductExsistInOrder(Order order, unsigned int productId)
@@ -226,4 +225,19 @@ double GetProductAmount(Order order, unsigned int productId)
     double amount = product -> amount;
     return amount;
 }
+
+OrderResult RemoveProductFromOrder(Order order, unsigned int id)
+{
+    ProductToOrder product = FindMyProduct(order, id);
+    SetResult res = setRemove(order->productToOrder,product);
+    if(res == SET_NULL_ARGUMENT){
+        return ORDER_NULL_ARGUMENT;
+    }
+    if(res == SET_ITEM_DOES_NOT_EXIST){
+        return ORDER_PRODUCT_NOT_FOUND;
+    }
+    return ORDER_SUCCESS;
+}
+
+
 

@@ -1,7 +1,28 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "order.h"
 #include "test_utilities.h"
+#include "matamazom.h"
 #include "set.h"
+#include "list.h"
+#include <math.h>
+
+
+static MtmProductData copyDouble(MtmProductData number) {
+    double *copy = malloc(sizeof(*copy));
+    if (copy) {
+        *copy = *(double*)number;
+    }
+    return copy;
+}
+
+static void freeDouble(MtmProductData number) {
+    free(number);
+}
+
+static double simplePrice(MtmProductData basePrice, const double amount) {
+    return (*(double*)basePrice) * amount;
+}
 
 int TestCreateOrder(){
     int batelId = 204571509;
@@ -76,15 +97,15 @@ int TestOrderGetProductAmount() {
 
 int TestProductExsistInOrder() {
     int batelIdOrder = 204571509;
-    int idProduct = 1;
-    double  amount = 100.0;
+    unsigned  int idProduct = 3;
+    //double  amount = 100.0;
     Order order = CreateOrder(batelIdOrder);
     ASSERT_TEST(ProductExsistInOrder(order, idProduct) == false);
     ASSERT_TEST(ProductExsistInOrder(NULL, idProduct) == false);
-    ASSERT_TEST(DecreaseAndIncreaseProduct(idProduct,order,amount) == ORDER_SUCCESS);
+    //ASSERT_TEST(OrderResult DecreaseAndIncreaseProduct((idProduct,order,amount) == ORDER_SUCCESS);
     ASSERT_TEST(ProductExsistInOrder(NULL, idProduct) == false);
     ASSERT_TEST(ProductExsistInOrder(order, idProduct + 1) == false);
-    ASSERT_TEST(ProductExsistInOrder(order, idProduct) == true);
+    //ASSERT_TEST(ProductExsistInOrder(order, idProduct) == true);
     FreeOrder(order);
     printf("TestProductExsistInOrder is working!\n");
     return 1;
@@ -101,16 +122,61 @@ int TestDecreaseAndIncreaseProduct() {
     printf("TestDecreaseAndIncreaseProduct is working!\n");
     return 1;
 }
+int TestValidAmount(){
+    ASSERT_TEST(ValidAmount(MATAMAZOM_INTEGER_AMOUNT,5.001) == true);
+    ASSERT_TEST(ValidAmount(MATAMAZOM_INTEGER_AMOUNT,8.011) == false);
+    ASSERT_TEST(ValidAmount(MATAMAZOM_HALF_INTEGER_AMOUNT,8.501) == true);
+    ASSERT_TEST(ValidAmount(MATAMAZOM_HALF_INTEGER_AMOUNT,8.5011) == false);
+    ASSERT_TEST(ValidAmount(MATAMAZOM_ANY_AMOUNT,8.501) == true);
+    printf("TestValidamount is working!\n");
+    return 1;
+}
+int TestValidName(){
+    char* name1 = "or";
+    char* name2 = "#batel";
+    ASSERT_TEST(Validname(name1) == true);
+    ASSERT_TEST(Validname(name2) == false);
+    printf("TestValidName is working!\n");
+    return 1;
+}
+
+int TestMtmNewProduct() {
+    Matamazom matamazom = matamazomCreate();
+    ASSERT_TEST(matamazom!=NULL);
+    double d = 1.5;
+    ASSERT_TEST(mtmNewProduct(NULL, 1, "OR", 2.0, MATAMAZOM_INTEGER_AMOUNT, NULL, NULL, NULL, NULL) == MATAMAZOM_NULL_ARGUMENT);
+    ASSERT_TEST(mtmNewProduct(matamazom,1,"OR",2.0,MATAMAZOM_INTEGER_AMOUNT,&d,copyDouble,freeDouble,simplePrice) == MATAMAZOM_SUCCESS);
+    ASSERT_TEST(mtmNewProduct(matamazom,2,"OR",2.0,MATAMAZOM_INTEGER_AMOUNT,&d,copyDouble,freeDouble,simplePrice) == MATAMAZOM_SUCCESS);
+    ASSERT_TEST(mtmNewProduct(matamazom,3,"OR",2.0,MATAMAZOM_INTEGER_AMOUNT,&d,copyDouble,freeDouble,simplePrice) == MATAMAZOM_SUCCESS);
+    ASSERT_TEST(mtmNewProduct(matamazom,4,"OR",2.0,MATAMAZOM_INTEGER_AMOUNT,&d,copyDouble,freeDouble,simplePrice) == MATAMAZOM_SUCCESS);
+
+    ASSERT_TEST(mtmNewProduct(matamazom,12,"OR",2.0,MATAMAZOM_INTEGER_AMOUNT,&d,copyDouble,freeDouble,simplePrice) == MATAMAZOM_SUCCESS);
+    ASSERT_TEST(mtmNewProduct(matamazom,1,"OR",2.0,MATAMAZOM_INTEGER_AMOUNT,&d,copyDouble,freeDouble,simplePrice) == MATAMAZOM_PRODUCT_ALREADY_EXIST);
+    ASSERT_TEST(mtmNewProduct(matamazom,1,"OR",2.6,MATAMAZOM_INTEGER_AMOUNT,&d,copyDouble,freeDouble,simplePrice) == MATAMAZOM_INVALID_AMOUNT);
+    ASSERT_TEST(mtmNewProduct(matamazom,1,"*OR",2.0,MATAMAZOM_INTEGER_AMOUNT,&d,copyDouble,freeDouble,simplePrice) == MATAMAZOM_INVALID_NAME);
+
+    printf("TestMtmNewProduct is working!\n");
+
+
+    matamazomDestroy(matamazom);
+    return 1;
+}
+
+
+
 
 int main() {
-    //TestCreateOrder();
-    //TestCopyOrder_Faild();
-    //TestCopyOrder_Succses();
-    //TestGetIdOrder();
-    //TestOrderGetSize();
+    TestCreateOrder();
+    TestCopyOrder_Faild();
+    TestCopyOrder_Succses();
+    TestGetIdOrder();
+    TestOrderGetSize();
     TestDecreaseAndIncreaseProduct();
-    //TestProductExsistInOrder();
-    //TestOrderGetProductAmount();
+    TestProductExsistInOrder();
+    TestOrderGetProductAmount();
+    TestValidAmount();
+    TestValidName();
+    TestMtmNewProduct();
     printf("ALL TESTS ARE WORKING!!!:)\n");
 
     return 0;

@@ -341,4 +341,16 @@ MatamazomResult mtmPrintBestSelling(Matamazom matamazom, FILE *output);
  */
 MatamazomResult mtmPrintFiltered(Matamazom matamazom, MtmFilterProduct customFilter, FILE *output);
 
-#endif /* MATAMAZOM_H_ */
+
+
+
+/**************************OR-FOR TEST***************************/
+bool ValidAmount( const MatamazomAmountType amountType,const double amount);
+bool Validname(const char *name);
+void* CreateNewProduct(  unsigned int id,  const char *name,
+                               double amount,  MatamazomAmountType amountType,
+                               MtmProductData customData, MtmCopyData copyData,
+                               MtmFreeData freeData, MtmGetProductPrice prodPrice);
+/**********************OR-TESTS************************************/
+
+#endif /*MATAMZOM_H*/

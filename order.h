@@ -102,5 +102,6 @@ bool ProductExsistInOrder(Order order, unsigned int productId);
  *      ORDER_SUCCESS - in case of success.
  */
 double GetProductAmount(Order order, unsigned int productId);
-
+int CompareOrders(Order order1,Order order2);//TODO add description
+OrderResult RemoveProductFromOrder(Order order, unsigned int id);
 #endif //HW1_ORDER_H

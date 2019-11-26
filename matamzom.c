@@ -10,6 +10,7 @@
 #include "list.h"
 #include "matamazom.h"
 #include "order.h"
+#include "matamazom_print.h"
 
 typedef struct Proudct_t {
     MtmProductData mtmProductData;
@@ -25,12 +26,11 @@ typedef struct Proudct_t {
 
 typedef struct Matamazom_t{
     MtmFilterProduct mtmFilterProduct;
-    int bestSellingProudctId;
+    unsigned int bestSellingProudctId;
     List products;
     Set order;
     unsigned int ids;
 }*Matamzom;
-
 
 static SetElement OrdCopy(SetElement order) {
     return OrderCopy(order);
@@ -354,6 +354,31 @@ MatamazomResult mtmCancelOrder(Matamazom matamazom, const unsigned int orderId)
     return MATAMAZOM_SUCCESS;
 }
 
+MatamazomResult mtmPrintInventory(Matamazom matamazom, FILE *output){
+    if(matamazom == NULL || output == NULL){
+        return MATAMAZOM_NULL_ARGUMENT;
+    }
+    printf("Inventory Status:\n");
+    List duplicate = listCopy(matamazom->products);
+    listSort(duplicate, int(*compareProducts)(Product, Product));
+    listSort
+    LIST_FOREACH(Product, iterator, matamazom->products){
+        mtmPrintProductDetails(iterator->name, iterator->productId, iterator->amountInStorge, iterator->mtmProductPrice(iterator->mtmProductData,1), output);
+    }
+    return MATAMAZOM_SUCCESS;
+}
+MatamazomResult mtmPrintOrder(Matamazom matamazom, const unsigned int orderId, FILE *output){
+return 1;
+}
+MatamazomResult mtmPrintBestSelling(Matamazom matamazom, FILE *output){
+    return 1;
+}
+MatamazomResult mtmPrintFiltered(Matamazom matamazom, MtmFilterProduct customFilter, FILE *output){
+return 1;
+}
 
-
-
+int compareProducts (Product P1,Product P2){
+    if(P1->productId < P2->productId) return -1;
+    else if (P1->productId == P2->productId) return 0;
+    else return 1;
+}

@@ -26,11 +26,19 @@ typedef struct Proudct_t {
 
 typedef struct Matamazom_t{
     MtmFilterProduct mtmFilterProduct;
-    unsigned int bestSellingProudctId;
+    int bestSellingProudctId;
     List products;
     Set order;
     unsigned int ids;
 }*Matamzom;
+
+int compareProducts (void* e1,void *e2){
+    Product P1 = e1;
+    Product P2 = e2;
+    if(P1->productId < P2->productId) return -1;
+    else if (P1->productId == P2->productId) return 0;
+    else return 1;
+}
 
 static SetElement OrdCopy(SetElement order) {
     return OrderCopy(order);
@@ -360,25 +368,36 @@ MatamazomResult mtmPrintInventory(Matamazom matamazom, FILE *output){
     }
     printf("Inventory Status:\n");
     List duplicate = listCopy(matamazom->products);
-    listSort(duplicate, int(*compareProducts)(Product, Product));
-    listSort
+    listSort(duplicate, compareProducts);
     LIST_FOREACH(Product, iterator, matamazom->products){
         mtmPrintProductDetails(iterator->name, iterator->productId, iterator->amountInStorge, iterator->mtmProductPrice(iterator->mtmProductData,1), output);
     }
+    listDestroy(duplicate);
     return MATAMAZOM_SUCCESS;
 }
-MatamazomResult mtmPrintOrder(Matamazom matamazom, const unsigned int orderId, FILE *output){
-return 1;
-}
-MatamazomResult mtmPrintBestSelling(Matamazom matamazom, FILE *output){
-    return 1;
+MatamazomResult mtmPrintOrder(Matamazom matamazom, const unsigned int orderId, FILE *output) {
+    if (matamazom == NULL || output == NULL) {
+        return MATAMAZOM_NULL_ARGUMENT;
+    }
+    bool found = false;
+    Order to_print = NULL;
+    SET_FOREACH(Order, iterator, matamazom->order) {
+        if (GetOrderId(iterator) == orderId) {
+            found = true;
+            to_print = iterator;
+        }
+        if (!found) {
+            return MATAMAZOM_ORDER_NOT_EXIST;
+        }
+        mtmPrintOrderHeading(orderId, output);
+        SET_FOREACH()
+
+
+        printf("Order %d Details", orderId);
+
+    }
 }
 MatamazomResult mtmPrintFiltered(Matamazom matamazom, MtmFilterProduct customFilter, FILE *output){
-return 1;
+    return 1;
 }
 
-int compareProducts (Product P1,Product P2){
-    if(P1->productId < P2->productId) return -1;
-    else if (P1->productId == P2->productId) return 0;
-    else return 1;
-}

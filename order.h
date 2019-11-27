@@ -15,6 +15,11 @@ typedef enum OrderResult_t {
     ORDER_PRODUCT_NOT_FOUND
 } OrderResult;
 
+typedef enum Product_result{
+    PRODUCT_NULL_ARGUMENT,
+    PRODUCT_SUCCESS,
+}ProductResult;
+
 /**
  * CreateOrder: create an empty order.
  * @param orderId - the id of the order.
@@ -104,4 +109,6 @@ bool ProductExsistInOrder(Order order, unsigned int productId);
 double GetProductAmount(Order order, unsigned int productId);
 int CompareOrders(Order order1,Order order2);//TODO add description
 OrderResult RemoveProductFromOrder(Order order, unsigned int id);
+ProductResult GetProductIdAndAmount(ProductToOrder  productToOrder ,double* amount, unsigned int* id);
+Set GetProductsSet(Order order);
 #endif //HW1_ORDER_H

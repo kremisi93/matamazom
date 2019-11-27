@@ -239,5 +239,26 @@ OrderResult RemoveProductFromOrder(Order order, unsigned int id)
     return ORDER_SUCCESS;
 }
 
+Set GetProductsSet(Order order) {
+    if(order == NULL)
+    {
+        return  NULL;
+    }
+    return order -> productToOrder;
+}
+
+ProductResult GetProductIdAndAmount(ProductToOrder  productToOrder ,double* amount, unsigned int* id)
+{
+
+    if(productToOrder == NULL || amount == NULL || id == NULL)
+    {
+        return PRODUCT_NULL_ARGUMENT;
+    }
+    *amount = productToOrder -> amount;
+    *id = productToOrder -> productId;
+    return PRODUCT_SUCCESS;
+}
+
+
 
 

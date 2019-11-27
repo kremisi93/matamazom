@@ -10,6 +10,21 @@
 #include "list.h"
 #include "matamazom.h"
 #include "order.h"
+/*double prodSelling =  productInStorage -> productSelling;
+            prodSelling += basicGetPrice(productInStorage ->mtmProductData , amountProductToOrder);
+
+            if(prodSelling > topSeller ->productSelling)
+            {
+                matamazom ->bestSellingProudctId = productOrderId;
+            }
+            else if(prodSelling == (topSeller -> productSelling))
+            {
+                if(IdCmp(productOrderId , topSeller -> productId) == 1)
+                {
+                    matamazom -> bestSellingProudctId = productOrderId;
+                }
+            }
+             */
 
 typedef struct Proudct_t {
     MtmProductData mtmProductData;
@@ -25,11 +40,21 @@ typedef struct Proudct_t {
 
 typedef struct Matamazom_t{
     MtmFilterProduct mtmFilterProduct;
-    int bestSellingProudctId;
+    unsigned int bestSellingProudctId;
     List products;
     Set order;
     unsigned int ids;
 }*Matamzom;
+static ListElement FindMyProductInStorage(List products , unsigned int productId)
+{
+    LIST_FOREACH(ListElement,iterator, products)
+    {
+        if ((((Product) iterator)->productId) == productId) {
+            return (Product) iterator;
+        }
+    }
+    return NULL;//should not get here!
+}
 
 
 static SetElement OrdCopy(SetElement order) {
@@ -104,6 +129,17 @@ static Order FindMyOrder(Matamzom matamazom, unsigned int id)
     }
     return NULL;
 }
+
+static double basicGetPrice(MtmProductData basePrice, double amount) {
+         return (*(double*)basePrice) * amount;
+}
+
+static  int IdCmp(unsigned int id1 , unsigned int id2)
+{
+    if(id1>id2)return 1;
+    else return 2;
+}
+
 
  bool ValidAmount( const MatamazomAmountType amountType,const double amount) {
     if (amountType == MATAMAZOM_INTEGER_AMOUNT) {
@@ -352,6 +388,61 @@ MatamazomResult mtmCancelOrder(Matamazom matamazom, const unsigned int orderId)
     }
     setRemove(matamazom->order,order);
     return MATAMAZOM_SUCCESS;
+}
+MatamazomResult mtmShipOrder(Matamazom matamazom, const unsigned int orderId)
+{
+    if(matamazom == NULL)
+    {
+        return MATAMAZOM_NULL_ARGUMENT;
+    }
+    Order order = FindMyOrder(matamazom, orderId);
+    if(order == NULL){
+        return MATAMAZOM_ORDER_NOT_EXIST;
+    }
+    double amountProductToOrder;
+    unsigned  int productOrderId;
+    Set productToOrder =  GetProductsSet(order);
+    SET_FOREACH(SetElement ,iterator,productToOrder) {
+        GetProductIdAndAmount(((ProductToOrder) iterator), &amountProductToOrder, &productOrderId);
+        Product productInStorage = FindMyProduct(matamazom, productOrderId);
+        if ((productInStorage -> amountInStorge) < amountProductToOrder) {
+            return MATAMAZOM_INSUFFICIENT_AMOUNT;
+        }
+    }
+    SET_FOREACH(SetElement , iterator , productToOrder) {
+        GetProductIdAndAmount(((ProductToOrder) iterator), &amountProductToOrder, &productOrderId);
+        Product productInStorage = FindMyProduct(matamazom, productOrderId);
+        Product topSeller = FindMyProduct(matamazom, matamazom->bestSellingProudctId);
+        if ((productInStorage -> amountInStorge) == amountProductToOrder) {
+            MatamazomResult res = mtmClearProduct(matamazom, productInStorage->productId);
+            if (res == MATAMAZOM_NULL_ARGUMENT) {
+                return MATAMAZOM_NULL_ARGUMENT;
+            }
+            MatamazomResult res1 = mtmCancelOrder(matamazom, orderId);
+            if (res1 == MATAMAZOM_NULL_ARGUMENT) {
+                return MATAMAZOM_NULL_ARGUMENT;
+            }
+        }
+        double newProductSelling = basicGetPrice(productInStorage->mtmProductData, amountProductToOrder) +
+                                   productInStorage->productSelling;
+        productInStorage->productSelling = newProductSelling;
+        if (newProductSelling > topSeller->productSelling) {
+            matamazom->bestSellingProudctId = productOrderId;
+        }
+        if (newProductSelling == topSeller->productSelling) {
+            int bigger = IdCmp(productOrderId, topSeller->productId);
+            if (bigger == 1) {
+                matamazom->bestSellingProudctId = productOrderId;
+            }
+        }
+        mtmChangeProductAmount(productOrderId, amountProductToOrder);
+        MatamazomResult res1 = mtmCancelOrder(matamazom, orderId);
+        if (res1 == MATAMAZOM_NULL_ARGUMENT) {
+            return MATAMAZOM_NULL_ARGUMENT;
+        }
+
+
+    }
 }
 
 

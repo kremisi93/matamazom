@@ -429,19 +429,48 @@ MatamazomResult mtmPrintOrder(Matamazom matamazom, const unsigned int orderId, F
     mtmPrintOrderSummary(sum,output);
     return MATAMAZOM_SUCCESS;
 }
-MatamazomResult mtmPrintFiltered(Matamazom matamazom, MtmFilterProduct customFilter, FILE *output){
-    if (matamazom == NULL || customFilter == NULL || output == NULL){
+MatamazomResult mtmPrintFiltered(Matamazom matamazom, MtmFilterProduct customFilter, FILE *output) {
+    if (matamazom == NULL || customFilter == NULL || output == NULL) {
         return MATAMAZOM_NULL_ARGUMENT;
     }
-    LIST_FOREACH(Product, iterator, matamazom->products){
-        char* name = iterator->name;
+    LIST_FOREACH(Product, iterator, matamazom->products) {
+        char *name = iterator->name;
         int id = iterator->productId;
         double amount = iterator->amountInStorge;
 
-        if(customFilter(id, name, amount, iterator->mtmProductData)){
-            mtmPrintProductDetails(name, id, amount, productPrice(matamazom,id),output);
+        if (customFilter(id, name, amount, iterator->mtmProductData)) {
+            mtmPrintProductDetails(name, id, amount, productPrice(matamazom, id), output);
         }
-        return MATAMAZOM_SUCCESS;
     }
+    return MATAMAZOM_SUCCESS;
 }
+
+static int compareProductPrice(void* Product_1, void* Product_2){
+    Product P1 = (Product)Product_1;
+    Product P2 = (Product)Product_2;
+    if(P1->productSelling > P2->productSelling){
+        return 1;
+    }
+    else if (P1->productSelling == P2->productSelling){
+        return 0;
+    }
+    else return -1;
+}
+
+MatamazomResult mtmPrintBestSelling(Matamazom matamazom, FILE *output){
+    if(matamazom == NULL || output == NULL){
+        return MATAMAZOM_NULL_ARGUMENT;
+    }
+    printf("Best Selling Product:\n");
+    List duplicate = listCopy(matamazom->products);
+    listSort(duplicate,compareProductPrice);
+    while(listGetSize(duplicate)>0) {
+        LIST_FOREACH(Product, iterator, duplicate) {
+            mtmPrintIncomeLine(iterator->name, iterator->productId, iterator->productSelling, output);
+        }
+    }
+    listDestroy(duplicate);
+    return MATAMAZOM_SUCCESS;
+}
+
 

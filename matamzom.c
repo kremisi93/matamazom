@@ -91,6 +91,31 @@ static ListElement ProductCopy(ListElement product)
     return  copy;
 }
 
+static char* productName (Matamazom matamazom, int id) {
+    if (matamazom == NULL) {
+        return NULL;
+    }
+    LIST_FOREACH(Product, iterator, matamazom->products) {
+        if (iterator->productId == id) {
+            return iterator->name;
+        }
+    }
+    return NULL;
+}
+
+static double productPrice (Matamazom matamazom, int id){
+    if(matamazom == NULL){
+        return 0;
+    }
+    LIST_FOREACH(Product, iterator, matamazom->products){
+        if(iterator->productId == id){
+            return iterator->mtmProductPrice(iterator->mtmProductData, 1);
+        }
+    }
+    return 0;
+}
+
+
 static Product FindMyProduct(Matamzom matamazom, unsigned int id)
 {
     LIST_FOREACH(ListElement,iterator,matamazom -> products)
@@ -380,24 +405,43 @@ MatamazomResult mtmPrintOrder(Matamazom matamazom, const unsigned int orderId, F
         return MATAMAZOM_NULL_ARGUMENT;
     }
     bool found = false;
-    Order to_print = NULL;
+    Set to_print = NULL;
+    double sum = 0;
     SET_FOREACH(Order, iterator, matamazom->order) {
         if (GetOrderId(iterator) == orderId) {
             found = true;
-            to_print = iterator;
+            to_print = GetProductsSet(iterator);
         }
-        if (!found) {
-            return MATAMAZOM_ORDER_NOT_EXIST;
-        }
-        mtmPrintOrderHeading(orderId, output);
-        SET_FOREACH()
-
-
-        printf("Order %d Details", orderId);
-
     }
+    if (!found) {
+        return MATAMAZOM_ORDER_NOT_EXIST;
+    }
+    mtmPrintOrderHeading(orderId, output);
+    SET_FOREACH(ProductToOrder, iterator, to_print){
+        double* amount = NULL;
+        unsigned int* id = NULL;
+        GetProductIdAndAmount(iterator, amount, id);
+        char* name = productName(matamazom, *id);
+        double price = (*amount)*productPrice(matamazom, *id);
+        mtmPrintProductDetails(name,*id, *amount,price,output);
+        sum = sum + price;
+    }
+    mtmPrintOrderSummary(sum,output);
+    return MATAMAZOM_SUCCESS;
 }
 MatamazomResult mtmPrintFiltered(Matamazom matamazom, MtmFilterProduct customFilter, FILE *output){
-    return 1;
+    if (matamazom == NULL || customFilter == NULL || output == NULL){
+        return MATAMAZOM_NULL_ARGUMENT;
+    }
+    LIST_FOREACH(Product, iterator, matamazom->products){
+        char* name = iterator->name;
+        int id = iterator->productId;
+        double amount = iterator->amountInStorge;
+
+        if(customFilter(id, name, amount, iterator->mtmProductData)){
+            mtmPrintProductDetails(name, id, amount, productPrice(matamazom,id),output);
+        }
+        return MATAMAZOM_SUCCESS;
+    }
 }
 
